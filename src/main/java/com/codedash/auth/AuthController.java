@@ -34,7 +34,7 @@ public class AuthController {
         return authService.login(request);
     }
 
-    @PatchMapping("/verify")
+    @GetMapping("/verify")
     public ResponseEntity<String> verify(@RequestParam String token) {
 
         authService.verify(token);

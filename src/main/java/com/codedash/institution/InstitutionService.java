@@ -1,5 +1,6 @@
 package com.codedash.institution;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,6 +10,9 @@ import com.codedash.exceptionhandlers.AlreadyExistsException;
 import com.codedash.exceptionhandlers.BadRequestException;
 import com.codedash.exceptionhandlers.ResourceNotFoundException;
 import com.codedash.institution.dto.InstitutionRegisterRequest;
+import com.codedash.registration.PendingInstitution;
+import com.codedash.registration.PendingInstitutionRepository;
+import com.codedash.registration.PendingUserRepository;
 import com.codedash.user.Role;
 import com.codedash.user.User;
 import com.codedash.user.UserRepository;
@@ -23,8 +27,10 @@ public class InstitutionService {
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PendingInstitutionRepository pendingInstitutionRepository;
+    private final PendingUserRepository pendingUserRepository;
 
-    public List<Institution> all(){
+    public List<Institution> getAll(){
         return institutionRepository.findAll();
     }
     
@@ -41,54 +47,69 @@ public class InstitutionService {
             throw new AlreadyExistsException("Domain already registered");
         }
 
+        // Domain must not already be pending
+        if (pendingInstitutionRepository.existsByDomain(request.getDomain())){
+            throw new BadRequestException("Registration request already submitted for this domain");
+        }
+
         if (!request.getAdminEmail().endsWith(request.getDomain())) {
             throw new BadRequestException("Email is not of the given domain");
         }
+
         // 3. Create institution with PENDING status
-        Institution institution = new Institution();
-        institution.setName(request.getInstitutionName());
-        institution.setDomain(request.getDomain());
-        institution.setStatus(InstitutionStatus.PENDING);
-        institutionRepository.save(institution);
+        PendingInstitution pending = new PendingInstitution();
+        pending.setName(request.getInstitutionName());
+        pending.setDomain(request.getDomain());
+        pending.setAdminEmail(request.getAdminEmail());
+        pending.setAdminPassword(passwordEncoder.encode(request.getAdminPassword()));
+        pendingInstitutionRepository.save(pending);
 
-        // 4. Create admin user (not yet active — institution pending)
-        User admin = new User();
-        admin.setEmail(request.getAdminEmail());
-        admin.setPassword(passwordEncoder.encode(request.getAdminPassword()));
-        admin.setRole(Role.INSTITUTION_ADMIN);
-        admin.setInstitution(institution);
-        admin.setEmailVerified(false);
-        userRepository.save(admin);
 
-        // 5. Email Master for approval
+        // 4. Email Master for approval
         // emailService.sendInstitutionApprovalRequest(
         //     institution, admin, masterEmail
         // );
     }
 
-    public void handleInstitution(Long id, InstitutionStatus status) {
+    public void approve(Long pendingId) {
 
-        Institution institution = institutionRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+        PendingInstitution pending = pendingInstitutionRepository.findById(pendingId)
+            .orElseThrow(() -> new ResourceNotFoundException("Pending institution not found"));
 
-        if (status == InstitutionStatus.APPROVED) {
-
-            institution.setStatus(InstitutionStatus.APPROVED);
-
-            User admin = userRepository.findByInstitution(institution)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));
-
-            admin.setEmailVerified(true);
-            userRepository.save(admin);
-
-        } else if (status == InstitutionStatus.REJECTED) {
-
-            institution.setStatus(InstitutionStatus.REJECTED);
-
-        } else {
-            throw new BadRequestException("Invalid status");
-        }
-
+        // Move to institutions table
+        Institution institution = new Institution();
+        institution.setName(pending.getName());
+        institution.setDomain(pending.getDomain());
+        institution.setCreatedAt(LocalDateTime.now());
         institutionRepository.save(institution);
+
+        // Create admin user in users table
+        User admin = new User();
+        admin.setEmail(pending.getAdminEmail());
+        admin.setPassword(pending.getAdminPassword());  // already hashed
+        admin.setRole(Role.INSTITUTION_ADMIN);
+        admin.setInstitution(institution);
+        userRepository.save(admin);
+
+        // Delete from pending
+        pendingInstitutionRepository.delete(pending);
+
+        // Email admin — you're approved
+        // emailService.sendInstitutionApproved(admin.getEmail(), institution.getName());
+    }
+
+    public void reject(Long pendingId) {
+
+        PendingInstitution pending = pendingInstitutionRepository.findById(pendingId)
+            .orElseThrow(() -> new ResourceNotFoundException("Pending institution not found"));
+
+        String email = pending.getAdminEmail();
+        String name = pending.getName();
+
+        // Just delete — no trace kept
+        pendingInstitutionRepository.delete(pending);
+
+        // Email admin — rejected
+        // emailService.sendInstitutionRejected(email, name);
     }
 }

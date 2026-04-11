@@ -18,28 +18,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/institution")
+@RequestMapping("/api/institutions")
 @RequiredArgsConstructor
 public class InstitutionController {
+
     private final InstitutionService institutionService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerInstitution(@Valid @RequestBody InstitutionRegisterRequest request){
+    public ResponseEntity<String> register(
+            @Valid @RequestBody InstitutionRegisterRequest request) {
         institutionService.registerInstitution(request);
-        return ResponseEntity.ok("Registered");
-    }
-
-    @PatchMapping("/master/institutions/{id}")
-    public ResponseEntity<String> handleInstitution(
-            @PathVariable Long id,
-            @RequestBody Map<String,InstitutionStatus> statusRequest) {
-
-        institutionService.handleInstitution(id, statusRequest.get("status"));
-        return ResponseEntity.ok("Done");
-    }
-
-    @GetMapping("/master/institutions")
-    public List<Institution> all(){
-        return institutionService.all();
+        return ResponseEntity.status(201).body("Registration request submitted");
     }
 }

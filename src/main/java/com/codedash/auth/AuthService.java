@@ -16,6 +16,10 @@ import com.codedash.exceptionhandlers.ResourceNotFoundException;
 import com.codedash.institution.Institution;
 import com.codedash.institution.InstitutionRepository;
 import com.codedash.institution.InstitutionStatus;
+import com.codedash.registration.PendingInstitution;
+import com.codedash.registration.PendingInstitutionRepository;
+import com.codedash.registration.PendingUser;
+import com.codedash.registration.PendingUserRepository;
 import com.codedash.user.Role;
 import com.codedash.user.User;
 import com.codedash.user.UserRepository;
@@ -28,6 +32,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PendingUserRepository pendingUserRepository;
+
 
     public void register(RegisterRequest request) {
 
@@ -35,61 +41,64 @@ public class AuthService {
         Institution institution = institutionRepository.findById(request.getInstitutionId())
             .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
 
-        // 2. Institution must be APPROVED
-        if (institution.getStatus() != InstitutionStatus.APPROVED) {
-            throw new BadRequestException("Institution is not active");
-        }
-
-        // 3. Email domain must match institution domain
+        // 2. Email domain must match institution domain
         String emailDomain = request.getEmail().split("@")[1];
         if (!emailDomain.equalsIgnoreCase(institution.getDomain())) {
             throw new BadRequestException("Email domain does not match institution");
         }
 
-        // 4. Check existing user
-        Optional<User> existingUserOpt = userRepository.findByEmail(request.getEmail());
+        if (userRepository.findByEmail(request.getEmail()).isPresent()){
+            throw new AlreadyExistsException("Email already registered");
+        }
 
-        if (existingUserOpt.isPresent()) {
-            User existingUser = existingUserOpt.get();
-
-            // already verified → block
-            if (existingUser.isEmailVerified()) {
-                throw new AlreadyExistsException("Email already registered");
-            }
-
+        Optional<PendingUser> existingUser = pendingUserRepository.findByEmail(request.getEmail());
+        
+        if (existingUser.isPresent()) {
+            PendingUser user = existingUser.get();
             // not verified → check expiry
-            if (existingUser.getTokenExpiry() != null &&
-                existingUser.getTokenExpiry().isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("Verification link already sent. Try later.");
+            if (user.getTokenExpiry() != null &&
+                user.getTokenExpiry().isAfter(LocalDateTime.now())) {
+                throw new BadRequestException("Verification link already sent.");
             }
 
             // token expired → re-register (update user)
-            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
 
             String newToken = UUID.randomUUID().toString();
-            existingUser.setVerificationToken(newToken);
-            existingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+            user.setVerificationToken(newToken);
+            user.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
-            userRepository.save(existingUser);
+            pendingUserRepository.save(user);
+
+            // Email is sent below
+
             return;
         }
 
         // 5. Create new user
         String verificationToken = UUID.randomUUID().toString();
 
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.STUDENT);
-        user.setInstitution(institution);
-        user.setEmailVerified(false);
-        user.setVerificationToken(verificationToken);
-        user.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        PendingUser pendingUser = new PendingUser();
+        pendingUser.setEmail(request.getEmail());
+        pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        pendingUser.setInstitution(institution);
+        pendingUser.setVerificationToken(verificationToken);
+        pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
-        userRepository.save(user);
+        pendingUserRepository.save(pendingUser);
     }
 
     public AuthResponse login(AuthRequest request) {
+
+        Optional<PendingUser> pending = pendingUserRepository.findByEmail(request.getEmail());
+
+        if (pending.isPresent()) {
+            if (pending.get().getTokenExpiry().isAfter(LocalDateTime.now())) {
+                throw new BadRequestException("Verify your email first");
+            } else {
+                throw new BadRequestException("Verification expired. Please register again");
+            }
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new BadRequestException("Invalid credentials"));
@@ -97,11 +106,6 @@ public class AuthService {
         // check password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BadRequestException("Invalid credentials");
-        }
-
-        // check verified
-        if (!user.isEmailVerified()) {
-            throw new BadRequestException("Please verify your email first");
         }
 
         // return basic response (no JWT yet)
@@ -113,19 +117,23 @@ public class AuthService {
     }
     public void verify(String token) {
 
-        User user = userRepository.findByVerificationToken(token)
+        PendingUser pendingUser = pendingUserRepository.findByVerificationToken(token)
             .orElseThrow(() -> new BadRequestException("Invalid token"));
 
         // check expiry
-        if (user.getTokenExpiry() != null &&
-            user.getTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (pendingUser.getTokenExpiry() != null &&
+            pendingUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Token expired");
         }
 
-        user.setEmailVerified(true);
-        user.setVerificationToken(null);
-        user.setTokenExpiry(null);
+        User user = new User();
+        user.setEmail(pendingUser.getEmail());
+        user.setPassword(pendingUser.getPassword());
+        user.setInstitution(pendingUser.getInstitution());
+        user.setRole(Role.STUDENT);
+        
 
         userRepository.save(user);
+        pendingUserRepository.delete(pendingUser);
     }
 }

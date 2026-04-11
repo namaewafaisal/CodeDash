@@ -1,25 +1,22 @@
-package com.codedash.institution;
+package com.codedash.registration;
 
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "institutions")
-public class Institution {
+@Table(name = "pending_institutions")
+public class PendingInstitution {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,5 +27,12 @@ public class Institution {
     @Column(nullable = false, unique = true)
     private String domain;
 
-    private LocalDateTime createdAt;
+    // Admin credentials — stored until approved, then moved
+    private String adminEmail;
+    private String adminPassword;       // bcrypt hashed
+
+    private LocalDateTime requestedAt;
+
+    @PrePersist
+    public void prePersist() { this.requestedAt = LocalDateTime.now(); }
 }
