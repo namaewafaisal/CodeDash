@@ -2,6 +2,6 @@ package com.codedash.institution;
 
 public enum InstitutionStatus {
     PENDING,
-    ACCEPTED,
+    APPROVED,
     REJECTED
 }
