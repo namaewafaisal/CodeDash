@@ -3,7 +3,7 @@ spring:
     name: codedash
   
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/codedash}
+    url: ${DB_URL_CD:jdbc:postgresql://localhost:5432/codedash}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
   
@@ -11,5 +11,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  
-
+app:
+  jwt:
+    secret: ${JWT_SECRET:secretnotavailfsajfdksjlhfahfshdlsakfhable}
+    expiration-ms: 86400000
+  pagination:
+    max-size: 50

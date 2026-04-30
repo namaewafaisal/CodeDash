@@ -1,4 +1,4 @@
-package com.codedash.auth.dto;
+package com.codedash;
 
 import java.util.UUID;
 
@@ -7,10 +7,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AuthResponse {
-
-    private String token;
+public class UserPrincipal {
     private UUID userId;
-    private String email;
     private String role;
+    private Long institutionId;
 }

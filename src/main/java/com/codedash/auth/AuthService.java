@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.codedash.JwtUtil;
 import com.codedash.auth.dto.AuthRequest;
 import com.codedash.auth.dto.AuthResponse;
 import com.codedash.auth.dto.RegisterRequest;
@@ -33,7 +34,7 @@ public class AuthService {
     private final InstitutionRepository institutionRepository;
     private final PasswordEncoder passwordEncoder;
     private final PendingUserRepository pendingUserRepository;
-
+    private final JwtUtil jwtUtil;
 
     public void register(RegisterRequest request) {
 
@@ -108,8 +109,9 @@ public class AuthService {
             throw new BadRequestException("Invalid credentials");
         }
 
-        // return basic response (no JWT yet)
+        String token = jwtUtil.generateToken(user);
         return new AuthResponse(
+            token,
             user.getId(),
             user.getEmail(),
             user.getRole().name()
