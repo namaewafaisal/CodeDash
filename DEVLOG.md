@@ -31,3 +31,35 @@ Do NOT assume role-based access is protecting anything right now.
 - Refresh token flow — design it properly before implementing
 - placement_info and student_academic tables — v2, not now
 - Audit logging — v2, not now
+
+## 2026-05-03
+
+### Progress
+- Implemented LeetCode fetch service using local Docker API (`alfa-leetcode-api`)
+- Implemented GitHub fetch service using public REST API
+- Created controller endpoints for both services and verified using Bruno
+
+### Infrastructure
+- Pulled and ran LeetCode API locally:
+  `docker run -d -p 3000:3000 --name leetcode-api alfaarghya/alfa-leetcode-api:2.0.4`
+
+### Key Learnings
+- LeetCode GraphQL cannot be reliably used directly due to CSRF + cookie restrictions
+- Using a local wrapper API simplifies integration and avoids auth issues
+- Docker basics:
+  - `run` creates container
+  - `stop` pauses container
+  - `rm` deletes container
+  - `ps` vs `ps -a` difference
+
+### Current State
+- Fetch → Map → Return flow is working
+- Clean structured response (not raw API data)
+
+### Next Step
+- Integrate fetch service with HandleStats (DB persistence)
+
+## 2026-05-04
+- Created a better service method
+- Only used /profile endpoint for the necessary data
+- Converted to HandleStats object

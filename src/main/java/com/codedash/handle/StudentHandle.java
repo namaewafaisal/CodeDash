@@ -17,12 +17,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Data;
 
 @Entity
 @Table(
     name = "student_handles",
     uniqueConstraints = @UniqueConstraint(columnNames = {"profile_id", "platform"})
 )
+@Data
 public class StudentHandle {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
