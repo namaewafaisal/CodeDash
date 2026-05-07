@@ -3,6 +3,7 @@ package com.codedash.stats;
 import java.time.LocalDateTime;
 
 import com.codedash.handle.StudentHandle;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,6 +37,7 @@ public class HandleStats {
     private LocalDateTime lastSubmissionAt;  // for activity indicator
 
     // Flexible — full API response
+    @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
     private String rawData;
 

@@ -1,12 +1,15 @@
 package com.codedash.fetch;
 
+import java.util.UUID;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.codedash.stats.HandleStats;
+import com.codedash.UserPrincipal;
+import com.codedash.handle.dto.HandleResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,18 +19,35 @@ import lombok.RequiredArgsConstructor;
 public class FetchController {
 
     private final FetchService fetchService;
-    private final LeetcodeProfileService leetcodeProfileService;
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/github/{username}")
-    public Object fetchGithub(@PathVariable String username) {
-        return fetchService.fetchGithub(username);
+    // ---------------- GITHUB ----------------
+    @PreAuthorize("hasRole('STUDENT')")
+    @GetMapping("/github")
+    public HandleResponse fetchGithub(
+            Authentication authentication) {
+
+        UUID userId = getUserId(authentication);
+
+        return fetchService.fetchGithub(userId);
     }
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/leetcode/{username}")
-    public HandleStats fetchLeetcode(@PathVariable String username){
-        
-        return leetcodeProfileService.fetchProfile(username);
+    // ---------------- LEETCODE ----------------
+    @PreAuthorize("hasRole('STUDENT')")
+    @GetMapping("/leetcode")
+    public HandleResponse fetchLeetcode(
+            Authentication authentication) {
+
+        UUID userId = getUserId(authentication);
+
+        return fetchService.fetchLeetcode(userId);
+    }
+
+    // ---------------- helper ----------------
+    private UUID getUserId(Authentication authentication) {
+
+        UserPrincipal userPrincipal =
+                (UserPrincipal) authentication.getPrincipal();
+
+        return userPrincipal.getUserId();
     }
 }

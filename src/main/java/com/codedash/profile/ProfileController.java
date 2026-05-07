@@ -5,15 +5,10 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
+import com.codedash.UserPrincipal;
 import com.codedash.profile.dto.ProfileRequest;
 import com.codedash.profile.dto.ProfileResponse;
 import com.codedash.profile.dto.UpdateProfileRequest;
@@ -28,27 +23,59 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
+    // ---------------- CREATE OWN PROFILE ----------------
     @PostMapping
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<String> createProfile(
-            @RequestParam UUID userId,
-            @Valid @RequestBody ProfileRequest request) {
+            @Valid @RequestBody ProfileRequest request,
+            Authentication authentication) {
+
+        UUID userId = getUserId(authentication);
 
         profileService.createProfile(userId, request);
+
         return ResponseEntity.ok("Profile created");
     }
 
-    @PatchMapping("/{profileId}")
+    // ---------------- UPDATE OWN PROFILE ----------------
+    @PatchMapping
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<String> updateProfile(
-            @PathVariable Long profileId,
-            @Valid @RequestBody UpdateProfileRequest request) {
+            @Valid @RequestBody UpdateProfileRequest request,
+            Authentication authentication) {
 
-        profileService.updateProfile(profileId, request);
+        UUID userId = getUserId(authentication);
+
+        profileService.updateProfile(userId, request);
+
         return ResponseEntity.ok("Profile updated");
     }
 
-    @PreAuthorize("isAuthenticated")
+    // ---------------- GET OWN PROFILE ----------------
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ProfileResponse getMyProfile(
+            Authentication authentication) {
+
+        UUID userId = getUserId(authentication);
+
+        return profileService.getProfile(userId);
+    }
+
+    // ---------------- ADMIN / STAFF ----------------
     @GetMapping
-    public List<ProfileResponse> getAll(){
+    @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
+    public List<ProfileResponse> getAll() {
+
         return profileService.getAll();
+    }
+
+    // ---------------- helper ----------------
+    private UUID getUserId(Authentication authentication) {
+
+        UserPrincipal userPrincipal =
+                (UserPrincipal) authentication.getPrincipal();
+
+        return userPrincipal.getUserId();
     }
 }

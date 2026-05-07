@@ -1,6 +1,7 @@
 package com.codedash.profile;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,7 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
     Optional<StudentProfile> findByUser(User user);
 
 	boolean existsByRegisterNumber(String registerNumber);
+	Optional<StudentProfile> findByUserId(UUID userId);
+
+	boolean existsByUserId(UUID userID);
 }

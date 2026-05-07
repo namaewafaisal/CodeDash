@@ -24,41 +24,67 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final AppMapper mapper;
 
-    public void createProfile(UUID userId, ProfileRequest request) {
+    // ---------------- CREATE ----------------
+    public void createProfile(
+            UUID userId,
+            ProfileRequest request) {
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
 
-        if (profileRepository.findByUser(user).isPresent()) {
+        if (profileRepository.existsByUserId(userId)) {
             throw new AlreadyExistsException("Profile already exists");
         }
-        if (profileRepository.existsByRegisterNumber(request.getRegisterNumber())) {
-            throw new AlreadyExistsException("Register Number already exists");
+
+        if (profileRepository.existsByRegisterNumber(
+                request.getRegisterNumber())) {
+
+            throw new AlreadyExistsException(
+                    "Register number already exists");
         }
 
         StudentProfile profile = mapper.toEntity(request);
+
         profile.setUser(user);
 
         profileRepository.save(profile);
     }
 
-    public void updateProfile(Long profileId, UpdateProfileRequest request) {
+    // ---------------- UPDATE OWN PROFILE ----------------
+    public void updateProfile(
+            UUID userId,
+            UpdateProfileRequest request) {
 
-        StudentProfile profile = profileRepository.findById(profileId)
-            .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+        StudentProfile profile =
+                profileRepository.findByUserId(userId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Profile not found"));
 
         mapper.updateProfileFromDto(request, profile);
 
         profileRepository.save(profile);
-
     }
 
+    // ---------------- GET OWN PROFILE ----------------
+    public ProfileResponse getProfile(UUID userId) {
+
+        StudentProfile profile =
+                profileRepository.findByUserId(userId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Profile not found"));
+
+        return mapper.toResponse(profile);
+    }
+
+    // ---------------- ADMIN / STAFF ----------------
     public List<ProfileResponse> getAll() {
+
         return profileRepository.findAll()
-            .stream()
-            .map(mapper::toResponse)
-            .toList();
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
-
-
 }
