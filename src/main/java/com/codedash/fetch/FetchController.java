@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.codedash.UserPrincipal;
 import com.codedash.handle.dto.HandleResponse;
+import com.codedash.stats.HandleStats;
+import com.codedash.stats.dto.HandleStatsResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class FetchController {
 
     private final FetchService fetchService;
+    private final LeetcodeProfileService leetcodeProfileService;
 
     // ---------------- GITHUB ----------------
     @PreAuthorize("hasRole('STUDENT')")
@@ -34,12 +37,12 @@ public class FetchController {
     // ---------------- LEETCODE ----------------
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/leetcode")
-    public HandleResponse fetchLeetcode(
+    public HandleStatsResponse fetchLeetcode(
             Authentication authentication) {
 
         UUID userId = getUserId(authentication);
 
-        return fetchService.fetchLeetcode(userId);
+        return leetcodeProfileService.fetchAndStore(userId);
     }
 
     // ---------------- helper ----------------

@@ -15,7 +15,7 @@ import com.codedash.handle.HandleRepository;
 import com.codedash.handle.Platform;
 import com.codedash.handle.StudentHandle;
 import com.codedash.handle.dto.HandleResponse;
-import com.codedash.handle.dto.HandleStatsResponse;
+import com.codedash.stats.dto.HandleStatsResponse;
 import com.codedash.stats.HandleStats;
 import com.codedash.stats.HandleStatsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

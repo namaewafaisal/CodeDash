@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.codedash.exceptionhandlers.ResourceNotFoundException;
 import com.codedash.handle.dto.HandleRequest;
 import com.codedash.handle.dto.HandleResponse;
-import com.codedash.handle.dto.HandleStatsResponse;
+import com.codedash.stats.dto.HandleStatsResponse;
 import com.codedash.handle.dto.UpdateHandleRequest;
 import com.codedash.profile.StudentProfile;
 import com.codedash.profile.StudentProfileRepository;

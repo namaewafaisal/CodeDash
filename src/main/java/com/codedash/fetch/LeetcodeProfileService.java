@@ -3,14 +3,21 @@ package com.codedash.fetch;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.codedash.exceptionhandlers.ResourceNotFoundException;
+import com.codedash.handle.HandleRepository;
+import com.codedash.handle.Platform;
 import com.codedash.handle.StudentHandle;
 import com.codedash.stats.HandleStats;
+import com.codedash.stats.HandleStatsRepository;
+import com.codedash.stats.dto.HandleStatsResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -21,60 +28,86 @@ public class LeetcodeProfileService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
+    private final HandleRepository handleRepository;
+    private final HandleStatsRepository handleStatsRepository;
 
     private final String BASE_URL = "http://localhost:3000";
 
-    public HandleStats fetchProfile(String username) {
+    public HandleStatsResponse fetchAndStore(UUID userId) {
 
-        // String username = handle.getUsername();
-        String url = BASE_URL + "/" + username + "/profile";
+        // find handle by userId and platform
+        StudentHandle handle = handleRepository
+            .findByProfileUserIdAndPlatform(userId, Platform.LEETCODE)
+            .orElseThrow(() -> new ResourceNotFoundException("LeetCode handle not found"));
 
-        Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+        // fetch from API
+        String url = BASE_URL + "/" + handle.getUsername() + "/profile";
+        Map<String, Object> leetcodeResponse = restTemplate.getForObject(url, Map.class);
 
-        return mapToEntity(response);
+        // map to entity
+        HandleStats stats = mapToEntity(leetcodeResponse);
+        stats.setHandle(handle);
+
+        // upsert — if stats row exists update it, else insert new
+        handleStatsRepository
+            .findByHandle(handle)
+            .ifPresent(existing -> stats.setId(existing.getId()));
+
+        HandleStats saved = handleStatsRepository.save(stats);
+    
+        // map to DTO — don't return entity
+        HandleStatsResponse response = new HandleStatsResponse();
+        response.setProblemsSolved(saved.getProblemsSolved());
+        response.setEasySolved(saved.getEasySolved());
+        response.setMediumSolved(saved.getMediumSolved());
+        response.setHardSolved(saved.getHardSolved());
+        response.setGlobalRank(saved.getGlobalRank());
+        response.setLastSubmissionAt(saved.getLastSubmissionAt());
+        response.setLastSyncedAt(saved.getLastSyncedAt());
+        response.setRawData(saved.getRawData());
+    
+        return response;
     }
 
-    // -------------------------
-    // Mapping logic (important)
-    // -------------------------
     private HandleStats mapToEntity(Map<String, Object> response) {
 
-        if (response == null) {
+        if (response == null)
             throw new RuntimeException("LeetCode API returned null");
-        }
 
         HandleStats stats = new HandleStats();
 
-        // ---- basic stats ----
         stats.setProblemsSolved((Integer) response.get("totalSolved"));
         stats.setEasySolved((Integer) response.get("easySolved"));
         stats.setMediumSolved((Integer) response.get("mediumSolved"));
         stats.setHardSolved((Integer) response.get("hardSolved"));
         stats.setGlobalRank((Integer) response.get("ranking"));
 
-
+        // last submission timestamp
         List<Map<String, Object>> submissions =
-                (List<Map<String, Object>>) response.get("recentSubmissions");
+            (List<Map<String, Object>>) response.get("recentSubmissions");
 
         if (submissions != null && !submissions.isEmpty()) {
             String ts = (String) submissions.get(0).get("timestamp");
-
-            LocalDateTime lastSubmission = Instant
-                    .ofEpochSecond(Long.parseLong(ts))
+            stats.setLastSubmissionAt(
+                Instant.ofEpochSecond(Long.parseLong(ts))
                     .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
-
-            stats.setLastSubmissionAt(lastSubmission);
+                    .toLocalDateTime()
+            );
         }
-        
+
+        // ---- raw data — only recent submissions ----
         try {
-            stats.setRawData(objectMapper.writeValueAsString(response));
+            Map<String, Object> rawDataMap = new LinkedHashMap<>();
+            rawDataMap.put("recentSubmissions", response.get("recentSubmissions"));
+        
+            stats.setRawData(objectMapper.writeValueAsString(rawDataMap));
         } catch (Exception e) {
             throw new RuntimeException("Failed to serialize raw data", e);
         }
+        
 
         stats.setLastSyncedAt(LocalDateTime.now());
-        
+
         return stats;
     }
 }

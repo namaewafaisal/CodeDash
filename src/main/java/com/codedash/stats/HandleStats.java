@@ -37,8 +37,8 @@ public class HandleStats {
     private LocalDateTime lastSubmissionAt;  // for activity indicator
 
     // Flexible — full API response
-    @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     private String rawData;
 
     private LocalDateTime lastSyncedAt;

@@ -3,7 +3,7 @@ package com.codedash.handle.dto;
 import java.time.LocalDateTime;
 
 import com.codedash.handle.Platform;
-
+import com.codedash.stats.dto.HandleStatsResponse;
 import lombok.Data;
 
 @Data

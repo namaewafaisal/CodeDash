@@ -63,3 +63,61 @@ Do NOT assume role-based access is protecting anything right now.
 - Created a better service method
 - Only used /profile endpoint for the necessary data
 - Converted to HandleStats object
+
+## 2026-05-07
+### DevLog — Handle, Fetch, Stats
+
+- Built the complete Handle → Fetch → Stats backend flow for external coding platforms.
+
+- Added `StudentHandle` system with platform-based unique handles linked to student profiles.
+
+- Implemented JWT-based ownership flow:
+  ```text
+  JWT → User → Profile → Handle → Stats
+  ```
+
+- Created authenticated handle APIs:
+  - create handle
+  - update handle
+  - delete handle
+  - fetch all handles
+  - fetch single handle
+
+- Implemented LeetCode integration using a locally running Docker API service instead of direct GraphQL calls.
+
+- Backend can now:
+  - fetch LeetCode profile data
+  - map important stats
+  - store structured stats in DB
+  - store recent submission history as raw JSON
+  - update existing stats instead of duplicating rows
+
+- Added `HandleStats` entity for:
+  - solved counts
+  - rankings
+  - last activity
+  - raw submission data
+  - sync timestamps
+
+- Fixed JSONB persistence and Hibernate serialization issues.
+
+- Refactored controllers/services to use DTOs instead of returning entities directly.
+
+- Standardized repository queries using nested relationship traversal:
+  ```text
+  userId → profile → handle → stats
+  ```
+
+- Added separate DB-read stats flow apart from fetch/sync flow.
+
+- Current working endpoints:
+  - handle management
+  - fetch LeetCode stats
+  - read stored stats
+
+- Remaining work:
+  - scheduler/cron syncing
+  - GitHub/Codeforces sync
+  - dashboard queries
+  - frontend integration
+  - analytics/activity summaries
