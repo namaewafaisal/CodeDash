@@ -121,3 +121,45 @@ Do NOT assume role-based access is protecting anything right now.
   - dashboard queries
   - frontend integration
   - analytics/activity summaries
+
+## 2026-05-09
+### DevLog — Dashboard & Pagination
+
+- Built institution-scoped leaderboard/dashboard API using JWT institution ownership filtering.
+
+- Added aggregated `DashboardResponse` DTO combining:
+  - student profile data
+  - platform handle data
+  - coding stats data
+
+- Implemented manual DTO mapping for nested entity aggregation:
+  ```text
+  HandleStats → Handle → Profile → DashboardResponse
+  ```
+
+- Added pagination support using Spring `Pageable` and `Page<T>`.
+
+- Added sorting support integrated with pageable leaderboard queries.
+
+- Refactored leaderboard flow to return paginated DTO responses instead of entities.
+
+- Implemented repository traversal queries across:
+  ```text
+  Institution → User → Profile → Handle → Stats
+  ```
+
+- Fixed DTO serialization and recursive entity response issues.
+
+- Added leaderboard-ready response structure for frontend table rendering.
+
+- Current leaderboard supports:
+  - institution filtering
+  - pagination
+  - sorting
+  - aggregated student stats view
+
+- Remaining work:
+  - filtering/search
+  - activity analytics
+  - scheduled stat syncing
+  - frontend dashboard UI

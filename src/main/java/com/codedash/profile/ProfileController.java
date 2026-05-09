@@ -64,7 +64,7 @@ public class ProfileController {
 
     // ---------------- ADMIN / STAFF ----------------
     @GetMapping
-    @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
+    // @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
     public List<ProfileResponse> getAll() {
 
         return profileService.getAll();

@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import com.codedash.dashboard.dto.DashboardResponse;
 import com.codedash.handle.StudentHandle;
 import com.codedash.handle.dto.HandleRequest;
 import com.codedash.handle.dto.HandleResponse;
@@ -13,7 +14,7 @@ import com.codedash.profile.StudentProfile;
 import com.codedash.profile.dto.ProfileRequest;
 import com.codedash.profile.dto.ProfileResponse;
 import com.codedash.profile.dto.UpdateProfileRequest;
-import com.codedash.registration.PendingInstitution;
+import com.codedash.stats.HandleStats;
 
 /**
  * Global MapStruct mapper for the entire project.
@@ -94,4 +95,8 @@ public interface AppMapper {
 
     // PendingInstitutionResponse toResponse(PendingInstitution pending);
 
+
+    // ─── Dashboard ───────────────────────────────────────────────────────
+
+    DashboardResponse toDashboardResponse(HandleStats stats);
 }
