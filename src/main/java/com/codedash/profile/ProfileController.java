@@ -8,10 +8,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.codedash.UserPrincipal;
 import com.codedash.profile.dto.ProfileRequest;
 import com.codedash.profile.dto.ProfileResponse;
 import com.codedash.profile.dto.UpdateProfileRequest;
+import com.codedash.security.dto.UserPrincipal;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

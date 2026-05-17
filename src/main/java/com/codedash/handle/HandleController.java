@@ -8,8 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.codedash.UserPrincipal;
 import com.codedash.handle.dto.*;
+import com.codedash.security.dto.UserPrincipal;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +86,19 @@ public class HandleController {
         return ResponseEntity.ok("Handle deleted");
     }
 
+    // --------------- Admin ------------------    
+    @PatchMapping("/frequency")
+    @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
+    public ResponseEntity<String> bulkUpdateFetchFrequency(
+            @Valid @RequestBody BulkUpdateFetchFrequencyRequest request
+    ) {
+    
+        handleService.bulkUpdateFetchFrequency(request);
+    
+        return ResponseEntity.ok(
+                "Fetch frequency updated"
+        );
+    }
     // ---------------- helper ----------------
     private UUID getUserId(Authentication authentication) {
         UserPrincipal principal =

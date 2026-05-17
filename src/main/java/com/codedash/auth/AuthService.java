@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.codedash.JwtUtil;
 import com.codedash.auth.dto.AuthRequest;
 import com.codedash.auth.dto.AuthResponse;
 import com.codedash.auth.dto.RegisterRequest;
@@ -21,6 +20,7 @@ import com.codedash.registration.PendingInstitution;
 import com.codedash.registration.PendingInstitutionRepository;
 import com.codedash.registration.PendingUser;
 import com.codedash.registration.PendingUserRepository;
+import com.codedash.security.JwtUtil;
 import com.codedash.user.Role;
 import com.codedash.user.User;
 import com.codedash.user.UserRepository;

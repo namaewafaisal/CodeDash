@@ -1,11 +1,13 @@
 package com.codedash.handle;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.codedash.profile.StudentProfile;
 import com.codedash.stats.HandleStats;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,6 +43,16 @@ public class StudentHandle {
     private boolean verified;
 
     private LocalDateTime usernameUpdatedAt;
+
+    private LocalDate lastFetchedDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private FetchFrequency fetchFrequency
+            = FetchFrequency.NEVER;
+
+    private LocalDate nextFetchDate;
+
 
     @OneToOne(mappedBy = "handle", cascade = CascadeType.ALL)
     private HandleStats stats;

@@ -7,13 +7,14 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.codedash.exceptionhandlers.ResourceNotFoundException;
+import com.codedash.handle.dto.BulkUpdateFetchFrequencyRequest;
 import com.codedash.handle.dto.HandleRequest;
 import com.codedash.handle.dto.HandleResponse;
-import com.codedash.stats.dto.HandleStatsResponse;
 import com.codedash.handle.dto.UpdateHandleRequest;
 import com.codedash.profile.StudentProfile;
 import com.codedash.profile.StudentProfileRepository;
 import com.codedash.stats.HandleStats;
+import com.codedash.stats.dto.HandleStatsResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -94,6 +95,26 @@ public class HandleService {
         handle.setUsernameUpdatedAt(LocalDateTime.now());
 
         handleRepository.save(handle);
+    }
+
+    public void bulkUpdateFetchFrequency(
+            BulkUpdateFetchFrequencyRequest request
+    ) {
+    
+        List<StudentHandle> handles =
+                handleRepository
+                        .findByProfileUserIdInAndPlatform(
+                                request.getUserIds(),
+                                request.getPlatform()
+                        );
+    
+        handles.forEach(handle ->
+                handle.setFetchFrequency(
+                        request.getFetchFrequency()
+                )
+        );
+    
+        handleRepository.saveAll(handles);
     }
 
     // ---------------- DELETE ----------------

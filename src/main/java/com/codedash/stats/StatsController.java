@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.codedash.UserPrincipal;
 import com.codedash.handle.Platform;
+import com.codedash.security.dto.UserPrincipal;
 import com.codedash.stats.dto.HandleStatsResponse;
 
 import lombok.RequiredArgsConstructor;

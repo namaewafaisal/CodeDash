@@ -1,4 +1,4 @@
-package com.codedash;
+package com.codedash.security;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,6 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.codedash.security.dto.UserPrincipal;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -64,7 +66,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

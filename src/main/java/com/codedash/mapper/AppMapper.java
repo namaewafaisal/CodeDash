@@ -98,5 +98,5 @@ public interface AppMapper {
 
     // ─── Dashboard ───────────────────────────────────────────────────────
 
-    DashboardResponse toDashboardResponse(HandleStats stats);
+    // DashboardResponse toDashboardResponse(HandleStats stats);
 }

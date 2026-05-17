@@ -107,7 +107,7 @@ Do NOT assume role-based access is protecting anything right now.
   ```text
   userId → profile → handle → stats
   ```
-
+- Enabled `@EnableMethodSecurity` in SecurityConfig
 - Added separate DB-read stats flow apart from fetch/sync flow.
 
 - Current working endpoints:
@@ -163,3 +163,52 @@ Do NOT assume role-based access is protecting anything right now.
   - activity analytics
   - scheduled stat syncing
   - frontend dashboard UI
+
+## 2026-05-17
+### DevLog — Automated Fetch Scheduler
+
+- Implemented automated scheduled syncing for coding platform handles using Spring Scheduler.
+
+- Added fetch scheduling metadata to handles:
+  - fetch frequency
+  - last fetched date
+  - next fetch date
+
+- Added admin-controlled bulk fetch frequency update API.
+
+- Implemented scheduler flow:
+  ```text
+  eligible handles
+  → platform fetch
+  → stats update
+  → next fetch date update
+  ```
+
+- Added automatic next-fetch calculation for:
+  - DAILY
+  - WEEKLY
+  - NEVER
+
+- Refactored fetch logic to update existing stats instead of recreating records.
+
+- Added DB-driven fetch eligibility using:
+  ```text
+  nextFetchDate <= today
+  ```
+
+- Tested full scheduler lifecycle successfully:
+  - scheduled execution
+  - stat syncing
+  - DB updates
+  - duplicate prevention
+
+- Improved security/error handling:
+  - proper 403 handling for method security
+  - cleaned JWT auth flow
+  - added global authorization exception handling
+
+- Remaining work:
+  - fetch retry/error tracking
+  - GitHub/Codeforces schedulers
+  - fetch optimization (N+1 query reduction)
+  - frontend integration

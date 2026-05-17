@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.codedash.UserPrincipal;
 import com.codedash.dashboard.dto.DashboardResponse;
+import com.codedash.security.dto.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 

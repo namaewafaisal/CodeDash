@@ -1,4 +1,4 @@
-package com.codedash;
+package com.codedash.security.dto;
 
 import java.util.UUID;
 

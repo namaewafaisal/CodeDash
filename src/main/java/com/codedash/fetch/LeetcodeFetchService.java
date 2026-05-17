@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class LeetcodeProfileService {
+public class LeetcodeFetchService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
@@ -33,12 +33,12 @@ public class LeetcodeProfileService {
 
     private final String BASE_URL = "http://localhost:3000";
 
-    public HandleStatsResponse fetchAndStore(UUID userId) {
+    public HandleStats fetchStats(StudentHandle handle) {
 
         // find handle by userId and platform
-        StudentHandle handle = handleRepository
-            .findByProfileUserIdAndPlatform(userId, Platform.LEETCODE)
-            .orElseThrow(() -> new ResourceNotFoundException("LeetCode handle not found"));
+        // StudentHandle handle = handleRepository
+        //     .findByProfileUserIdAndPlatform(userId, Platform.LEETCODE)
+        //     .orElseThrow(() -> new ResourceNotFoundException("LeetCode handle not found"));
 
         // fetch from API
         String url = BASE_URL + "/" + handle.getUsername() + "/profile";
@@ -46,27 +46,20 @@ public class LeetcodeProfileService {
 
         // map to entity
         HandleStats stats = mapToEntity(leetcodeResponse);
-        stats.setHandle(handle);
 
-        // upsert — if stats row exists update it, else insert new
-        handleStatsRepository
-            .findByHandle(handle)
-            .ifPresent(existing -> stats.setId(existing.getId()));
-
-        HandleStats saved = handleStatsRepository.save(stats);
+        return stats;
     
         // map to DTO — don't return entity
-        HandleStatsResponse response = new HandleStatsResponse();
-        response.setProblemsSolved(saved.getProblemsSolved());
-        response.setEasySolved(saved.getEasySolved());
-        response.setMediumSolved(saved.getMediumSolved());
-        response.setHardSolved(saved.getHardSolved());
-        response.setGlobalRank(saved.getGlobalRank());
-        response.setLastSubmissionAt(saved.getLastSubmissionAt());
-        response.setLastSyncedAt(saved.getLastSyncedAt());
-        response.setRawData(saved.getRawData());
-    
-        return response;
+        // HandleStatsResponse response = new HandleStatsResponse();
+        // response.setProblemsSolved(saved.getProblemsSolved());
+        // response.setEasySolved(saved.getEasySolved());
+        // response.setMediumSolved(saved.getMediumSolved());
+        // response.setHardSolved(saved.getHardSolved());
+        // response.setGlobalRank(saved.getGlobalRank());
+        // response.setLastSubmissionAt(saved.getLastSubmissionAt());
+        // response.setLastSyncedAt(saved.getLastSyncedAt());
+        // response.setRawData(saved.getRawData());
+
     }
 
     private HandleStats mapToEntity(Map<String, Object> response) {
