@@ -2,6 +2,7 @@ package com.codedash.security;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -10,7 +11,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
-
+    
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -18,7 +22,7 @@ public class CorsConfig {
 
         // which frontends can talk to this backend
         config.setAllowedOrigins(List.of(
-            "http://localhost:5173",      // local dev
+            frontendUrl,      // local dev
             "https://your-app.vercel.app" // production (add later)
         ));
 

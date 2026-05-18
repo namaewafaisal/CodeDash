@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.codedash.auth.dto.AuthRequest;
 import com.codedash.auth.dto.AuthResponse;
 import com.codedash.auth.dto.RegisterRequest;
+import com.codedash.email.EmailService;
 import com.codedash.exceptionhandlers.AlreadyExistsException;
 import com.codedash.exceptionhandlers.BadRequestException;
 import com.codedash.exceptionhandlers.ResourceNotFoundException;
@@ -35,6 +36,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final PendingUserRepository pendingUserRepository;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
     public void register(RegisterRequest request) {
 
@@ -55,23 +57,32 @@ public class AuthService {
         Optional<PendingUser> existingUser = pendingUserRepository.findByEmail(request.getEmail());
         
         if (existingUser.isPresent()) {
-            PendingUser user = existingUser.get();
+            PendingUser pendingUser = existingUser.get();
             // not verified → check expiry
-            if (user.getTokenExpiry() != null &&
-                user.getTokenExpiry().isAfter(LocalDateTime.now())) {
+            if (pendingUser.getTokenExpiry() != null &&
+                pendingUser.getTokenExpiry().isAfter(LocalDateTime.now())) {
                 throw new BadRequestException("Verification link already sent.");
             }
 
             // token expired → re-register (update user)
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
 
             String newToken = UUID.randomUUID().toString();
-            user.setVerificationToken(newToken);
-            user.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+            pendingUser.setVerificationToken(newToken);
+            pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
-            pendingUserRepository.save(user);
+            pendingUserRepository.save(pendingUser);
 
             // Email is sent below
+
+            String verificationLink =
+                    "http://localhost:8080/api/auth/verify?token="
+                    + pendingUser.getVerificationToken();
+            
+            emailService.sendVerificationEmail(
+                    pendingUser.getEmail(),
+                    verificationLink
+            );
 
             return;
         }
@@ -87,6 +98,16 @@ public class AuthService {
         pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
         pendingUserRepository.save(pendingUser);
+
+        // email
+        String verificationLink =
+                "http://localhost:8080/api/auth/verify?token="
+                + verificationToken;
+        
+        emailService.sendVerificationEmail(
+                pendingUser.getEmail(),
+                verificationLink
+        );
     }
 
     public AuthResponse login(AuthRequest request) {

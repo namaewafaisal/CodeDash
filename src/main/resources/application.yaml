@@ -3,17 +3,36 @@ spring:
     name: codedash
   
   datasource:
-    url: ${DB_URL_CD:jdbc:postgresql://localhost:5432/codedash}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL_CD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${APP_EMAIL}
+    password: ${APP_EMAIL_PASSWORD}
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 app:
   jwt:
-    secret: ${JWT_SECRET:secretnotavailfsajfdksjlhfahfshdlsakfhable}
+    secret: ${JWT_SECRET}
     expiration-ms: 86400000
   pagination:
     max-size: 50
+  master:
+    email: ${MASTER_EMAIL}
+    password: ${MASTER_PASSWORD}
+
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  leetcode-api-url: ${LEETCODE_API_URL:http://localhost:3000}

@@ -35,6 +35,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/institutions/register").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated() // permit all so the request reaches the controller method and method security works
                 )

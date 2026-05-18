@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,8 +34,8 @@ public class FetchService {
 
     private final ObjectMapper objectMapper;
 
-    private static final String LEETCODE_BASE_URL =
-            "http://localhost:3000";
+    @Value("${app.frontend-url}")
+    private String LEETCODE_BASE_URL;
 
     // =========================================================
     // LEETCODE

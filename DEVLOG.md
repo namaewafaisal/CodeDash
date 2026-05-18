@@ -212,3 +212,9 @@ Do NOT assume role-based access is protecting anything right now.
   - GitHub/Codeforces schedulers
   - fetch optimization (N+1 query reduction)
   - frontend integration
+  - SMTP/email config
+  - EmailService
+  - Verification email sender
+  - Verification endpoint
+  - Token expiry handling
+  - Resend verification endpoint

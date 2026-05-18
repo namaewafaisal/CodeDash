@@ -1,5 +1,6 @@
 package com.codedash;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,11 +12,18 @@ import com.codedash.user.Role;
 import com.codedash.user.User;
 import com.codedash.user.UserRepository;
 
+
 @SpringBootApplication
 @EnableScheduling
 public class CodedashApplication {
+    
+    @Value("${app.master.email}")
+    private String MASTER_EMAIL;
 
-	public static void main(String[] args) {
+    @Value("${app.master.password}")
+    private String MASTER_PASSWORD;
+
+    public static void main(String[] args) {
 		SpringApplication.run(CodedashApplication.class, args);
 	}
 
@@ -23,10 +31,10 @@ public class CodedashApplication {
     @Bean
     CommandLineRunner init(UserRepository userRepository, PasswordEncoder encoder) {
         return args -> {
-            if (userRepository.findByEmail("master@codedash.com").isEmpty()) {
+            if (userRepository.findByEmail(MASTER_EMAIL).isEmpty()) {
                 User master = new User();
-                master.setEmail("master@codedash.com");
-                master.setPassword(encoder.encode("admin123"));
+                master.setEmail(MASTER_EMAIL);
+                master.setPassword(encoder.encode(MASTER_PASSWORD));
                 master.setRole(Role.MASTER);
                 master.setInstitution(null);
 
