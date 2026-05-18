@@ -19,18 +19,17 @@ public class JwtAccessDeniedHandler
             HttpServletResponse response,
             AccessDeniedException accessDeniedException)
             throws IOException {
-
-        response.setStatus(
-                HttpServletResponse.SC_FORBIDDEN
-        );
-
+    
+        response.setHeader("Access-Control-Allow-Origin", 
+            request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
-
         response.getWriter().write("""
             {
-              "status": 403,
-              "error": "Forbidden",
-              "message": "Access denied"
+                "status": 403,
+                "error": "Forbidden",
+                "message": "Access denied"
             }
         """);
     }

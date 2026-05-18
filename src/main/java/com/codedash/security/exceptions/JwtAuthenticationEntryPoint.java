@@ -19,18 +19,19 @@ public class JwtAuthenticationEntryPoint
             HttpServletResponse response,
             AuthenticationException authException)
             throws IOException {
-
-        response.setStatus(
-                HttpServletResponse.SC_UNAUTHORIZED);
-
+    
+        response.setHeader("Access-Control-Allow-Origin", 
+            request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-
         response.getWriter().write("""
             {
-              "status": 401,
-              "error": "Unauthorized",
-              "message": "Invalid or missing token"
+                "status": 401,
+                "error": "Unauthorized",
+                "message": "Invalid or missing token"
             }
         """);
+        
     }
 }

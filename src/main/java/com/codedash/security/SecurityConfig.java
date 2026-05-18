@@ -2,6 +2,7 @@ package com.codedash.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,6 +35,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated() // permit all so the request reaches the controller method and method security works
                 )
                 .addFilterBefore(jwtFilter, 
