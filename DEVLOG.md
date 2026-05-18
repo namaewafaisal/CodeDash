@@ -218,3 +218,8 @@ Do NOT assume role-based access is protecting anything right now.
   - Verification endpoint
   - Token expiry handling
   - Resend verification endpoint
+
+#### Completed
+- Email service
+- APP email
+- deployed in railway

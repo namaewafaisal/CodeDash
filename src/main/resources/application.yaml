@@ -26,7 +26,7 @@ spring:
             enable: true
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET_CD}
     expiration-ms: 86400000
   pagination:
     max-size: 50
@@ -36,3 +36,4 @@ app:
 
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   leetcode-api-url: ${LEETCODE_API_URL:http://localhost:3000}
+  backend-url: ${BACKEND_URL:http://localhost:8080}

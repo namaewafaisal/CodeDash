@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,9 @@ public class AuthService {
     private final PendingUserRepository pendingUserRepository;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+
+    @Value("${app.backend-url}")
+    private String backendUrl;
 
     public void register(RegisterRequest request) {
 
@@ -74,15 +78,25 @@ public class AuthService {
             pendingUserRepository.save(pendingUser);
 
             // Email is sent below
+            try {
+                System.out.println("Before mail");
 
-            String verificationLink =
-                    "http://localhost:8080/api/auth/verify?token="
-                    + pendingUser.getVerificationToken();
+                String verificationLink =
+                        backendUrl
+                        + "/api/auth/verify?token="
+                        + pendingUser.getVerificationToken();
+                
+                emailService.sendVerificationEmail(
+                        pendingUser.getEmail(),
+                        verificationLink
+                );
             
-            emailService.sendVerificationEmail(
-                    pendingUser.getEmail(),
-                    verificationLink
-            );
+                System.out.println("After mail");
+            
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw e;
+            }
 
             return;
         }
@@ -100,14 +114,25 @@ public class AuthService {
         pendingUserRepository.save(pendingUser);
 
         // email
-        String verificationLink =
-                "http://localhost:8080/api/auth/verify?token="
-                + verificationToken;
+        try {
+            System.out.println("Before mail");
+
+            String verificationLink =
+                    backendUrl
+                    + "/api/auth/verify?token="
+                    + pendingUser.getVerificationToken();
+            
+            emailService.sendVerificationEmail(
+                    pendingUser.getEmail(),
+                    verificationLink
+            );
         
-        emailService.sendVerificationEmail(
-                pendingUser.getEmail(),
-                verificationLink
-        );
+            System.out.println("After mail");
+        
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public AuthResponse login(AuthRequest request) {
