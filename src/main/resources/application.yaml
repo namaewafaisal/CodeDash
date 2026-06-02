@@ -13,9 +13,9 @@ spring:
     show-sql: false
 
   mail:
-    host: smtp.gmail.com
+    host: smtp.resend.com
     port: 587
-    username: ${APP_EMAIL}
+    username: resend
     password: ${APP_EMAIL_PASSWORD}
 
     properties:

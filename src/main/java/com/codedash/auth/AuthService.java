@@ -42,6 +42,101 @@ public class AuthService {
     @Value("${app.backend-url}")
     private String backendUrl;
 
+    // Older version
+    // public void register(RegisterRequest request) {
+
+    //     // 1. Find institution
+    //     Institution institution = institutionRepository.findById(request.getInstitutionId())
+    //         .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+
+    //     // 2. Email domain must match institution domain
+    //     String emailDomain = request.getEmail().split("@")[1];
+    //     if (!emailDomain.equalsIgnoreCase(institution.getDomain())) {
+    //         throw new BadRequestException("Email domain does not match institution");
+    //     }
+
+    //     if (userRepository.findByEmail(request.getEmail()).isPresent()){
+    //         throw new AlreadyExistsException("Email already registered");
+    //     }
+
+    //     Optional<PendingUser> existingUser = pendingUserRepository.findByEmail(request.getEmail());
+        
+    //     if (existingUser.isPresent()) {
+    //         PendingUser pendingUser = existingUser.get();
+    //         // not verified → check expiry
+    //         if (pendingUser.getTokenExpiry() != null &&
+    //             pendingUser.getTokenExpiry().isAfter(LocalDateTime.now())) {
+    //             throw new BadRequestException("Verification link already sent.");
+    //         }
+
+    //         // token expired → re-register (update user)
+    //         pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+
+    //         String newToken = UUID.randomUUID().toString();
+    //         pendingUser.setVerificationToken(newToken);
+    //         pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+
+    //         pendingUserRepository.save(pendingUser);
+
+    //         // Email is sent below
+    //         try {
+    //             System.out.println("Before mail");
+
+    //             String verificationLink =
+    //                     backendUrl
+    //                     + "/api/auth/verify?token="
+    //                     + pendingUser.getVerificationToken();
+                
+    //             emailService.sendVerificationEmail(
+    //                     pendingUser.getEmail(),
+    //                     verificationLink
+    //             );
+            
+    //             System.out.println("After mail");
+            
+    //         } catch (Exception e) {
+    //             e.printStackTrace();
+    //             throw e;
+    //         }
+
+    //         return;
+    //     }
+
+    //     // 5. Create new user
+    //     String verificationToken = UUID.randomUUID().toString();
+
+    //     PendingUser pendingUser = new PendingUser();
+    //     pendingUser.setEmail(request.getEmail());
+    //     pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+    //     pendingUser.setInstitution(institution);
+    //     pendingUser.setVerificationToken(verificationToken);
+    //     pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+
+    //     pendingUserRepository.save(pendingUser);
+
+    //     // email
+    //     try {
+    //         System.out.println("Before mail");
+
+    //         String verificationLink =
+    //                 backendUrl
+    //                 + "/api/auth/verify?token="
+    //                 + pendingUser.getVerificationToken();
+            
+    //         emailService.sendVerificationEmail(
+    //                 pendingUser.getEmail(),
+    //                 verificationLink
+    //         );
+        
+    //         System.out.println("After mail");
+        
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         throw e;
+    //     }
+    // }
+    // 
+
     public void register(RegisterRequest request) {
 
         // 1. Find institution
@@ -53,99 +148,53 @@ public class AuthService {
         if (!emailDomain.equalsIgnoreCase(institution.getDomain())) {
             throw new BadRequestException("Email domain does not match institution");
         }
-
+        // 3. Email should be new
         if (userRepository.findByEmail(request.getEmail()).isPresent()){
             throw new AlreadyExistsException("Email already registered");
-        }
+        }        
 
-        Optional<PendingUser> existingUser = pendingUserRepository.findByEmail(request.getEmail());
-        
-        if (existingUser.isPresent()) {
-            PendingUser pendingUser = existingUser.get();
-            // not verified → check expiry
-            if (pendingUser.getTokenExpiry() != null &&
-                pendingUser.getTokenExpiry().isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("Verification link already sent.");
-            }
+        // 4. Create new user
 
-            // token expired → re-register (update user)
-            pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.STUDENT);
+        user.setInstitution(institution);
 
-            String newToken = UUID.randomUUID().toString();
-            pendingUser.setVerificationToken(newToken);
-            pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
 
-            pendingUserRepository.save(pendingUser);
-
-            // Email is sent below
-            try {
-                System.out.println("Before mail");
-
-                String verificationLink =
-                        backendUrl
-                        + "/api/auth/verify?token="
-                        + pendingUser.getVerificationToken();
-                
-                emailService.sendVerificationEmail(
-                        pendingUser.getEmail(),
-                        verificationLink
-                );
-            
-                System.out.println("After mail");
-            
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw e;
-            }
-
-            return;
-        }
-
-        // 5. Create new user
-        String verificationToken = UUID.randomUUID().toString();
-
-        PendingUser pendingUser = new PendingUser();
-        pendingUser.setEmail(request.getEmail());
-        pendingUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        pendingUser.setInstitution(institution);
-        pendingUser.setVerificationToken(verificationToken);
-        pendingUser.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
-
-        pendingUserRepository.save(pendingUser);
-
-        // email
-        try {
-            System.out.println("Before mail");
-
-            String verificationLink =
-                    backendUrl
-                    + "/api/auth/verify?token="
-                    + pendingUser.getVerificationToken();
-            
-            emailService.sendVerificationEmail(
-                    pendingUser.getEmail(),
-                    verificationLink
-            );
-        
-            System.out.println("After mail");
-        
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
     }
 
+    // public AuthResponse login(AuthRequest request) {
+
+    //     Optional<PendingUser> pending = pendingUserRepository.findByEmail(request.getEmail());
+
+    //     if (pending.isPresent()) {
+    //         if (pending.get().getTokenExpiry().isAfter(LocalDateTime.now())) {
+    //             throw new BadRequestException("Verify your email first");
+    //         } else {
+    //             throw new BadRequestException("Verification expired. Please register again");
+    //         }
+    //     }
+
+    //     User user = userRepository.findByEmail(request.getEmail())
+    //         .orElseThrow(() -> new BadRequestException("Invalid credentials"));
+
+    //     // check password
+    //     if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+    //         throw new BadRequestException("Invalid credentials");
+    //     }
+
+    //     String token = jwtUtil.generateToken(user);
+    //     return new AuthResponse(
+    //         token,
+    //         user.getId(),
+    //         user.getEmail(),
+    //         user.getRole().name()
+    //     );
+    // }
+
     public AuthResponse login(AuthRequest request) {
-
-        Optional<PendingUser> pending = pendingUserRepository.findByEmail(request.getEmail());
-
-        if (pending.isPresent()) {
-            if (pending.get().getTokenExpiry().isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("Verify your email first");
-            } else {
-                throw new BadRequestException("Verification expired. Please register again");
-            }
-        }
 
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new BadRequestException("Invalid credentials"));
@@ -163,6 +212,7 @@ public class AuthService {
             user.getRole().name()
         );
     }
+    
     public void verify(String token) {
 
         PendingUser pendingUser = pendingUserRepository.findByVerificationToken(token)

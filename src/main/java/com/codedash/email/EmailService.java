@@ -22,6 +22,8 @@ public class EmailService {
 
         message.setTo(to);
 
+        message.setFrom("onboarding@resend.dev");
+
         message.setSubject(
                 "Verify your CodeDash account"
         );
