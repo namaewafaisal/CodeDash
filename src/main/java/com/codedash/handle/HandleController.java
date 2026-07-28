@@ -11,12 +11,20 @@ import org.springframework.web.bind.annotation.*;
 import com.codedash.handle.dto.*;
 import com.codedash.security.dto.UserPrincipal;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/handles")
 @RequiredArgsConstructor
+@Tag(
+    name = "Handles",
+    description = "Student coding platform handle management"
+)
+@SecurityRequirement(name = "Bearer Auth")
 public class HandleController {
 
     private final HandleService handleService;
@@ -24,6 +32,10 @@ public class HandleController {
     // ---------------- GET ALL ----------------
     @GetMapping
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Get all handles",
+        description = "Returns all coding platform handles for the authenticated student."
+    )
     public List<HandleResponse> getHandles(Authentication authentication) {
 
         UUID userId = getUserId(authentication);
@@ -34,6 +46,10 @@ public class HandleController {
     // ---------------- GET ONE ----------------
     @GetMapping("/{platform}")
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Get handle",
+        description = "Returns the handle for the specified coding platform."
+    )
     public HandleResponse getHandle(
             @PathVariable Platform platform,
             Authentication authentication) {
@@ -46,6 +62,10 @@ public class HandleController {
     // ---------------- CREATE ----------------
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Create handle",
+        description = "Adds a coding platform handle for the authenticated student."
+    )
     public ResponseEntity<String> createHandle(
             @Valid @RequestBody HandleRequest request,
             Authentication authentication) {
@@ -60,6 +80,10 @@ public class HandleController {
     // ---------------- UPDATE ----------------
     @PatchMapping("/{platform}")
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Update handle",
+        description = "Updates the username for a coding platform."
+    )
     public ResponseEntity<String> updateHandle(
             @PathVariable Platform platform,
             @Valid @RequestBody UpdateHandleRequest request,
@@ -75,6 +99,10 @@ public class HandleController {
     // ---------------- DELETE ----------------
     @DeleteMapping("/{platform}")
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Delete handle",
+        description = "Deletes a coding platform handle."
+    )
     public ResponseEntity<String> deleteHandle(
             @PathVariable Platform platform,
             Authentication authentication) {
@@ -86,19 +114,21 @@ public class HandleController {
         return ResponseEntity.ok("Handle deleted");
     }
 
-    // --------------- Admin ------------------    
+    // --------------- Admin ------------------
     @PatchMapping("/frequency")
     @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
+    @Operation(
+        summary = "Bulk update fetch frequency",
+        description = "Updates the fetch frequency for multiple users on a coding platform."
+    )
     public ResponseEntity<String> bulkUpdateFetchFrequency(
-            @Valid @RequestBody BulkUpdateFetchFrequencyRequest request
-    ) {
-    
+            @Valid @RequestBody BulkUpdateFetchFrequencyRequest request) {
+
         handleService.bulkUpdateFetchFrequency(request);
-    
-        return ResponseEntity.ok(
-                "Fetch frequency updated"
-        );
+
+        return ResponseEntity.ok("Fetch frequency updated");
     }
+
     // ---------------- helper ----------------
     private UUID getUserId(Authentication authentication) {
         UserPrincipal principal =

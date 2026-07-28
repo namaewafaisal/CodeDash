@@ -13,12 +13,20 @@ import com.codedash.profile.dto.ProfileResponse;
 import com.codedash.profile.dto.UpdateProfileRequest;
 import com.codedash.security.dto.UserPrincipal;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
+@Tag(
+    name = "Profiles",
+    description = "Student profile management endpoints"
+)
+@SecurityRequirement(name = "Bearer Auth")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -26,6 +34,10 @@ public class ProfileController {
     // ---------------- CREATE OWN PROFILE ----------------
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Create profile",
+        description = "Creates a profile for the authenticated student."
+    )
     public ResponseEntity<String> createProfile(
             @Valid @RequestBody ProfileRequest request,
             Authentication authentication) {
@@ -40,6 +52,10 @@ public class ProfileController {
     // ---------------- UPDATE OWN PROFILE ----------------
     @PatchMapping
     @PreAuthorize("hasRole('STUDENT')")
+    @Operation(
+        summary = "Update profile",
+        description = "Updates the authenticated student's profile."
+    )
     public ResponseEntity<String> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request,
             Authentication authentication) {
@@ -54,6 +70,10 @@ public class ProfileController {
     // ---------------- GET OWN PROFILE ----------------
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Get my profile",
+        description = "Returns the authenticated student's profile."
+    )
     public ProfileResponse getMyProfile(
             Authentication authentication) {
 
@@ -65,6 +85,10 @@ public class ProfileController {
     // ---------------- ADMIN / STAFF ----------------
     @GetMapping
     // @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'STAFF')")
+    @Operation(
+        summary = "Get all profiles",
+        description = "Returns all student profiles."
+    )
     public List<ProfileResponse> getAll() {
 
         return profileService.getAll();

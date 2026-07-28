@@ -10,14 +10,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.codedash.handle.dto.HandleResponse;
 import com.codedash.security.dto.UserPrincipal;
-import com.codedash.stats.HandleStats;
-import com.codedash.stats.dto.HandleStatsResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/fetch")
 @RequiredArgsConstructor
+@Tag(
+    name = "Fetch",
+    description = "Fetch coding platform data for the authenticated student"
+)
+@SecurityRequirement(name = "Bearer Auth")
 public class FetchController {
 
     private final FetchService fetchService;
@@ -26,6 +32,10 @@ public class FetchController {
     // ---------------- GITHUB ----------------
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/github")
+    @Operation(
+        summary = "Fetch GitHub profile",
+        description = "Fetches and updates the authenticated student's GitHub profile information."
+    )
     public HandleResponse fetchGithub(
             Authentication authentication) {
 
@@ -37,11 +47,15 @@ public class FetchController {
     // ---------------- LEETCODE ----------------
     // @PreAuthorize("hasRole('STUDENT')")
     // @GetMapping("/leetcode")
+    // @Operation(
+    //     summary = "Fetch LeetCode statistics",
+    //     description = "Fetches and updates the authenticated student's LeetCode statistics."
+    // )
     // public HandleStatsResponse fetchLeetcode(
     //         Authentication authentication) {
-
+    //
     //     UUID userId = getUserId(authentication);
-
+    //
     //     return leetcodeProfileService.fetchStats(userId);
     // }
 
